@@ -1,21 +1,14 @@
-import telegram
+import telegram, logging, os, time, requests
 from http import HTTPStatus
-import logging
 from logging.handlers import RotatingFileHandler
-import os
-import time
-import requests
-from dotenv import load_dotenv 
-
+from dotenv import load_dotenv
 
 
 load_dotenv()
-
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.DEBUG,
     filename='main.log',)
-
 logger = logging.getLogger(__name__)
 
 handler = RotatingFileHandler('logger.log',
@@ -53,7 +46,8 @@ def check_tokens():
 def send_message(bot, message):
     """Отправляет сообщение в Telegram чат, определяемый переменной окружения
     TELEGRAM_CHAT_ID. Принимает на вход два параметра: экземпляр класса Bot и
-    строку с текстом сообщения."""
+    строку с текстом сообщения.
+    """
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'Сообщение в чат {TELEGRAM_CHAT_ID}: {message}')
@@ -67,7 +61,8 @@ def get_api_answer(current_timestamp):
     """Делает запрос к единственному эндпоинту API-сервиса.
     В качестве параметра в функцию передается временная метка.
     В случае успешного запроса ворачивается ответ API, приведенный
-    к формату JSON и типам данных Python."""
+    к формату JSON и типам данных Python.
+    """
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
@@ -94,7 +89,8 @@ def check_response(response):
     Ответ приведен к типам данных Python.
     Если ответ API соответствует ожиданиям, то функция должна вернуть
     список домашних работ (он может бытьnи пустым), доступный в ответе
-    API по ключу 'homeworks'"""
+    API по ключу 'homeworks'
+    """
     if type(response) is not dict:
         raise TypeError('Ответ API не совпадает со словарем')
     try:
@@ -118,7 +114,8 @@ def parse_status(homework):
     В качестве параметра функция получает только один элемент из списка
     домашних работ. В случае успеха, функция возвращает подготовленную для
     отправки в Telegram строку, содержащую один из вердиктов словаря
-    HOMEWORK_VERDICTS."""
+    HOMEWORK_VERDICTS.
+    """
     if 'homework_name' not in homework:
         raise KeyError('Отсутствует ключ "homework_name" в ответе API')
     if 'status' not in homework:
