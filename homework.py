@@ -1,4 +1,8 @@
-import telegram, logging, os, time, requests
+import telegram
+import logging
+import os
+import time
+import requests
 from http import HTTPStatus
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
@@ -38,7 +42,8 @@ HOMEWORK_VERDICTS = {
 def check_tokens():
     """Проверяет доступность переменных окружения, необходимых для работы.
     Если отсутствует хотя бы одна переменная окружения — функция
-    должна вернуть False, иначе — True."""
+    должна вернуть False, иначе — True.
+    """
     if all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         return True
 
