@@ -1,6 +1,7 @@
 import telegram
 import logging
 import os
+import sys
 import time
 import requests
 from http import HTTPStatus
@@ -44,8 +45,7 @@ def check_tokens():
     Если отсутствует хотя бы одна переменная окружения — функция
     должна вернуть False, иначе — True.
     """
-    if all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
-        return True
+    return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
 def send_message(bot, message):
@@ -75,16 +75,13 @@ def get_api_answer(current_timestamp):
                                          headers=HEADERS,
                                          params=params)
     except Exception as error:
-        logging.error(f'Ошибка при запросе API: {error}')
         raise Exception(f'Ошибка при запросе API: {error}')
     if homework_statuses.status_code != HTTPStatus.OK:
         status_code = homework_statuses.status_code
-        logging.error(f'Ошибка: {status_code}')
         raise Exception(f'Ошибка: {status_code}')
     try:
         return homework_statuses.json()
     except ValueError:
-        logger.error('Ошибка ответа в формате json')
         raise ValueError('Ошибка ответа в формате json')
 
 
@@ -101,15 +98,12 @@ def check_response(response):
     try:
         list_work = response['homeworks']
     except KeyError:
-        logger.error('Ошибка словаря по ключу "homeworks"')
         raise KeyError('Ошибка словаря по ключу "homeworks"')
     if not isinstance(response['homeworks'], list):
-        logger.error('Данные переданы не в виде списка')
         raise TypeError('Данные переданы не в виде списка')
     try:
         homework = list_work[0]
     except IndexError:
-        logger.error('Список домашки пуст')
         raise IndexError('Список домашки пуст')
     return homework
 
@@ -141,7 +135,7 @@ def main():
     ERROR_CACHE_MESSAGE = ''
     if not check_tokens():
         logger.critical('Отсутствуют одна или несколько переменных окружения')
-        raise Exception('Отсутствуют одна или несколько переменных окружения')
+        raise sys.exit('Отсутствуют одна или несколько переменных окружения')
     while True:
         try:
             response = get_api_answer(timestamp)
