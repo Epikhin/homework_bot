@@ -54,6 +54,7 @@ def send_message(bot, message):
     строку с текстом сообщения.
     """
     try:
+        logger.info('Началась отправка сообщения')
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'Сообщение в чат {TELEGRAM_CHAT_ID}: {message}')
     except Exception:
@@ -74,11 +75,12 @@ def get_api_answer(current_timestamp):
         homework_statuses = requests.get(ENDPOINT,
                                          headers=HEADERS,
                                          params=params)
+        logger.info('Производится запрос к API')
+        if homework_statuses.status_code != HTTPStatus.OK:
+            status_code = homework_statuses.status_code
+            raise Exception(f'Ошибка: {status_code}')
     except Exception as error:
         raise Exception(f'Ошибка при запросе API: {error}')
-    if homework_statuses.status_code != HTTPStatus.OK:
-        status_code = homework_statuses.status_code
-        raise Exception(f'Ошибка: {status_code}')
     try:
         return homework_statuses.json()
     except ValueError:
@@ -131,8 +133,8 @@ def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-    STATUS = ''
-    ERROR_CACHE_MESSAGE = ''
+    status = ''
+    error_cache_message = ''
     if not check_tokens():
         logger.critical('Отсутствуют одна или несколько переменных окружения')
         raise sys.exit('Отсутствуют одна или несколько переменных окружения')
@@ -141,16 +143,16 @@ def main():
             response = get_api_answer(timestamp)
             timestamp = response.get('current_date')
             message = parse_status(check_response(response))
-            if message != STATUS:
+            if message != status:
                 send_message(bot, message)
-                STATUS = message
+                status = message
             time.sleep(RETRY_PERIOD)
         except Exception as error:
             logger.error(error)
-            message_2 = f'Сбой в работе программы: {error}'
-            if message_2 != ERROR_CACHE_MESSAGE:
-                send_message(bot, message_2)
-                ERROR_CACHE_MESSAGE = message_2
+            message_error = f'Сбой в работе программы: {error}'
+            if message_error != error_cache_message:
+                send_message(bot, message_error)
+                error_cache_message = message_error
         time.sleep(RETRY_PERIOD)
 
 
